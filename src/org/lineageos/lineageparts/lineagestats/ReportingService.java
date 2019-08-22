@@ -16,7 +16,7 @@ import android.os.PersistableBundle;
 import android.util.Log;
 
 public class ReportingService extends IntentService {
-    /* package */ static final String TAG = "LineageStats";
+    static final String TAG = "clownStats";
     private static final boolean DEBUG = Log.isLoggable(TAG, Log.DEBUG);
 
     public ReportingService() {
@@ -31,40 +31,46 @@ public class ReportingService extends IntentService {
 
         String deviceId = Utilities.getUniqueID(context);
         String deviceName = Utilities.getDevice();
-        String deviceVersion = Utilities.getModVersion();
+        String deviceCrVersion = Utilities.getModVersion();
+        String deviceBuildDate = Utilities.getBuildDate();
+        String deviceAndroidVersion = Utilities.getAndroidVersion();
+        String deviceTag = Utilities.getTag();
         String deviceCountry = Utilities.getCountryCode(context);
         String deviceCarrier = Utilities.getCarrier(context);
         String deviceCarrierId = Utilities.getCarrierId(context);
 
-        final int lineageOldJobId = AnonymousStats.getLastJobId(context);
-        final int lineageOrgJobId = AnonymousStats.getNextJobId(context);
+        final int clownOldJobId = AnonymousStats.getLastJobId(context);
+        final int clownOrgJobId = AnonymousStats.getNextJobId(context);
 
-        if (DEBUG) Log.d(TAG, "scheduling job id: " + lineageOrgJobId);
+        if (DEBUG) Log.d(TAG, "scheduling job id: " + clownOrgJobId);
 
-        PersistableBundle lineageBundle = new PersistableBundle();
-        lineageBundle.putString(StatsUploadJobService.KEY_DEVICE_NAME, deviceName);
-        lineageBundle.putString(StatsUploadJobService.KEY_UNIQUE_ID, deviceId);
-        lineageBundle.putString(StatsUploadJobService.KEY_VERSION, deviceVersion);
-        lineageBundle.putString(StatsUploadJobService.KEY_COUNTRY, deviceCountry);
-        lineageBundle.putString(StatsUploadJobService.KEY_CARRIER, deviceCarrier);
-        lineageBundle.putString(StatsUploadJobService.KEY_CARRIER_ID, deviceCarrierId);
-        lineageBundle.putLong(StatsUploadJobService.KEY_TIMESTAMP, System.currentTimeMillis());
+        PersistableBundle clownBundle = new PersistableBundle();
+        clownBundle.putString(StatsUploadJobService.KEY_DEVICE_NAME, deviceName);
+        clownBundle.putString(StatsUploadJobService.KEY_UNIQUE_ID, deviceId);
+        clownBundle.putString(StatsUploadJobService.KEY_CR_VERSION, deviceCrVersion);
+        clownBundle.putString(StatsUploadJobService.KEY_BUILD_DATE, deviceBuildDate);
+        clownBundle.putString(StatsUploadJobService.KEY_ANDROID_VERSION, deviceAndroidVersion);
+        clownBundle.putString(StatsUploadJobService.KEY_TAG, deviceTag);
+        clownBundle.putString(StatsUploadJobService.KEY_COUNTRY, deviceCountry);
+        clownBundle.putString(StatsUploadJobService.KEY_CARRIER, deviceCarrier);
+        clownBundle.putString(StatsUploadJobService.KEY_CARRIER_ID, deviceCarrierId);
+        clownBundle.putLong(StatsUploadJobService.KEY_TIMESTAMP, System.currentTimeMillis());
 
         // set job types
-        lineageBundle.putInt(StatsUploadJobService.KEY_JOB_TYPE,
-                StatsUploadJobService.JOB_TYPE_LINEAGEORG);
+        clownBundle.putInt(StatsUploadJobService.KEY_JOB_TYPE,
+                StatsUploadJobService.JOB_TYPE_CLOWN);
 
-        // schedule lineage stats upload
-        js.schedule(new JobInfo.Builder(lineageOrgJobId, new ComponentName(getPackageName(),
+        // schedule clown stats upload
+        js.schedule(new JobInfo.Builder(clownOrgJobId, new ComponentName(getPackageName(),
                 StatsUploadJobService.class.getName()))
                 .setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY)
                 .setMinimumLatency(1000)
-                .setExtras(lineageBundle)
+                .setExtras(clownBundle)
                 .setPersisted(true)
                 .build());
 
         // cancel old job in case it didn't run yet
-        js.cancel(lineageOldJobId);
+        js.cancel(clownOldJobId);
 
         // reschedule
         AnonymousStats.updateLastSynced(this);
